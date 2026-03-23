@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, onSnapshot, query, orderBy, updateDoc, doc, deleteDoc } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, updateDoc, doc, deleteDoc, addDoc, setDoc } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
@@ -45,7 +45,20 @@ const AdminDashboard = () => {
         setOrders(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       });
       const unsubContent = onSnapshot(collection(db, 'pageContent'), (snapshot) => {
-        setPageContent(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        if (!snapshot.empty) {
+          setPageContent(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        } else {
+          // Seed initial content
+          const initialContent = [
+            { id: 'home', heroTitle: 'The Art of Living', heroSubtitle: 'Curated luxury for your sanctuary.', heroImage: 'https://picsum.photos/seed/home/1920/1080' },
+            { id: 'about', heroTitle: 'Our Story', heroSubtitle: 'Crafting excellence since 1992.', heroImage: 'https://picsum.photos/seed/about/1920/1080' },
+            { id: 'contact', heroTitle: 'Get in Touch', heroSubtitle: 'We are here to assist you.', heroImage: 'https://picsum.photos/seed/contact/1920/1080' }
+          ];
+          initialContent.forEach(async (content) => {
+            const { id, ...data } = content;
+            await setDoc(doc(db, 'pageContent', id), data);
+          });
+        }
       });
 
       return () => {
@@ -81,11 +94,47 @@ const AdminDashboard = () => {
   };
 
   const handleUpdateContent = async (id: string) => {
-    await updateDoc(doc(db, 'pageContent', id), editForm);
-    setIsEditing(null);
+    try {
+      await updateDoc(doc(db, 'pageContent', id), editForm);
+      setIsEditing(null);
+    } catch (error) {
+      console.error("Error updating content:", error);
+    }
   };
 
-  if (loading) return <div className="pt-32 text-center">Loading...</div>;
+  const [isAddingProduct, setIsAddingProduct] = useState(false);
+  const [newProduct, setNewProduct] = useState({
+    name: '',
+    price: '',
+    category: 'pads',
+    description: '',
+    image: '',
+    stock: 0
+  });
+
+  const handleAddProduct = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await addDoc(collection(db, 'products'), newProduct);
+      setIsAddingProduct(false);
+      setNewProduct({
+        name: '',
+        price: '',
+        category: 'pads',
+        description: '',
+        image: '',
+        stock: 0
+      });
+    } catch (error) {
+      console.error("Error adding product:", error);
+    }
+  };
+
+  if (loading) return <div className="pt-40 text-center">
+    <div className="w-12 h-12 border-4 border-royal-blue border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+    <p className="text-xs uppercase tracking-widest text-ink/40">Verifying Credentials...</p>
+  </div>;
+
   if (!user || role !== 'admin') return null;
 
   return (
@@ -96,12 +145,18 @@ const AdminDashboard = () => {
             <span className="text-xs uppercase tracking-[0.3em] text-royal-blue font-bold mb-2 block">Management</span>
             <h1 className="text-4xl font-serif">Admin <span className="italic text-royal-blue">Dashboard</span></h1>
           </div>
-          <button 
-            onClick={handleLogout}
-            className="flex items-center gap-2 text-xs uppercase tracking-widest font-bold hover:text-royal-blue transition-colors"
-          >
-            <LogOut size={16} /> Logout
-          </button>
+          <div className="flex items-center gap-6">
+            <div className="text-right hidden sm:block">
+              <p className="text-[10px] uppercase tracking-widest font-bold text-ink/40">Authenticated as</p>
+              <p className="text-xs font-bold text-royal-blue">{user.email}</p>
+            </div>
+            <button 
+              onClick={handleLogout}
+              className="flex items-center gap-2 text-xs uppercase tracking-widest font-bold hover:text-royal-blue transition-colors bg-white px-6 py-3 rounded-xl luxury-shadow"
+            >
+              <LogOut size={16} /> Logout
+            </button>
+          </div>
         </div>
 
         {/* Tabs */}
@@ -141,7 +196,85 @@ const AdminDashboard = () => {
             >
               <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-serif italic">Inventory</h2>
+                <button 
+                  onClick={() => setIsAddingProduct(true)}
+                  className="bg-royal-blue text-white px-6 py-3 rounded-xl text-xs uppercase tracking-widest font-bold flex items-center gap-2 hover:bg-ink transition-all shadow-lg shadow-royal-blue/20"
+                >
+                  <Plus size={16} /> Add Product
+                </button>
               </div>
+
+              {/* Add Product Form */}
+              {isAddingProduct && (
+                <motion.div 
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-white p-8 rounded-3xl luxury-shadow border-2 border-royal-blue/10"
+                >
+                  <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-xl font-serif italic">New Collection Item</h3>
+                    <button onClick={() => setIsAddingProduct(false)} className="text-ink/40 hover:text-ink"><X size={24} /></button>
+                  </div>
+                  <form onSubmit={handleAddProduct} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="text-[10px] uppercase font-bold text-ink/40 mb-1 block">Product Name</label>
+                      <input 
+                        required
+                        className="w-full border border-ink/5 bg-cream/30 p-3 rounded-xl focus:border-royal-blue outline-none transition-colors" 
+                        value={newProduct.name} 
+                        onChange={e => setNewProduct({...newProduct, name: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] uppercase font-bold text-ink/40 mb-1 block">Price (Ksh)</label>
+                      <input 
+                        required
+                        className="w-full border border-ink/5 bg-cream/30 p-3 rounded-xl focus:border-royal-blue outline-none transition-colors" 
+                        value={newProduct.price} 
+                        onChange={e => setNewProduct({...newProduct, price: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] uppercase font-bold text-ink/40 mb-1 block">Category</label>
+                      <select 
+                        className="w-full border border-ink/5 bg-cream/30 p-3 rounded-xl focus:border-royal-blue outline-none transition-colors" 
+                        value={newProduct.category} 
+                        onChange={e => setNewProduct({...newProduct, category: e.target.value as any})}
+                      >
+                        <option value="pads">Pads</option>
+                        <option value="tissues">Tissues</option>
+                        <option value="furniture">Furniture</option>
+                        <option value="rugs">Rugs</option>
+                        <option value="candles">Candles</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[10px] uppercase font-bold text-ink/40 mb-1 block">Image URL</label>
+                      <input 
+                        required
+                        className="w-full border border-ink/5 bg-cream/30 p-3 rounded-xl focus:border-royal-blue outline-none transition-colors" 
+                        value={newProduct.image} 
+                        onChange={e => setNewProduct({...newProduct, image: e.target.value})}
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="text-[10px] uppercase font-bold text-ink/40 mb-1 block">Description</label>
+                      <textarea 
+                        required
+                        className="w-full border border-ink/5 bg-cream/30 p-3 rounded-xl focus:border-royal-blue outline-none transition-colors resize-none" 
+                        rows={3}
+                        value={newProduct.description} 
+                        onChange={e => setNewProduct({...newProduct, description: e.target.value})}
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <button type="submit" className="w-full bg-royal-blue text-white py-4 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-ink transition-all">
+                        Create Product
+                      </button>
+                    </div>
+                  </form>
+                </motion.div>
+              )}
 
               <div className="grid grid-cols-1 gap-4">
                 {products.map(product => (
@@ -162,9 +295,8 @@ const AdminDashboard = () => {
                             <label className="text-[10px] uppercase font-bold text-ink/40 mb-1 block">Price (Ksh)</label>
                             <input 
                               className="w-full border p-2 rounded-lg" 
-                              type="number"
                               value={editForm.price} 
-                              onChange={e => setEditForm({...editForm, price: Number(e.target.value)})}
+                              onChange={e => setEditForm({...editForm, price: e.target.value})}
                             />
                           </div>
                           <div>

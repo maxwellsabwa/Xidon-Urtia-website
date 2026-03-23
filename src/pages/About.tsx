@@ -1,7 +1,24 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
+import { db } from '../firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 const About = () => {
+  const [content, setContent] = useState({
+    heroTitle: 'Elegance Redefined.',
+    heroSubtitle: 'Founded in 2024, Xidon Urtia was born from a simple vision: to create a lifestyle brand that celebrates the multifaceted nature of the modern woman.',
+    heroImage: 'https://picsum.photos/seed/founder/800/1000'
+  });
+
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'pageContent', 'about'), (doc) => {
+      if (doc.exists()) {
+        setContent(doc.data() as any);
+      }
+    });
+    return () => unsub();
+  }, []);
+
   return (
     <main className="pt-32 pb-24">
       <div className="max-w-7xl mx-auto px-6">
@@ -19,8 +36,7 @@ const About = () => {
               whileInView={{ opacity: 1, y: 0 }}
               className="text-5xl md:text-7xl font-serif mb-8 leading-tight"
             >
-              Elegance <br />
-              <span className="italic text-royal-blue">Redefined.</span>
+              {content.heroTitle}
             </motion.h1>
             <motion.p 
               initial={{ opacity: 0, y: 20 }}
@@ -28,7 +44,7 @@ const About = () => {
               transition={{ delay: 0.1 }}
               className="text-lg text-ink/70 leading-relaxed mb-8"
             >
-              Founded in 2024, Xidon Urtia was born from a simple vision: to create a lifestyle brand that celebrates the multifaceted nature of the modern woman. We believe that luxury isn't just about price—it's about the quality of the moments you create.
+              {content.heroSubtitle}
             </motion.p>
             <motion.p 
               initial={{ opacity: 0, y: 20 }}
@@ -41,7 +57,7 @@ const About = () => {
           </div>
           <div className="lg:w-1/2 relative">
             <img 
-              src="https://picsum.photos/seed/founder/800/1000" 
+              src={content.heroImage} 
               alt="Our Vision" 
               className="rounded-3xl luxury-shadow w-full aspect-[4/5] object-cover"
               referrerPolicy="no-referrer"

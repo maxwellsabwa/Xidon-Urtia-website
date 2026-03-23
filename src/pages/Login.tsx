@@ -2,12 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { LogIn, User, Lock, ShieldCheck } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { auth, signInWithEmailAndPassword } from '../firebase';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -18,23 +17,25 @@ const Login = () => {
     setLoading(true);
     
     try {
-      const response = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-      
-      const data = await response.json();
-      
-      if (response.ok && data.success) {
-        login(data.user);
-        navigate('/admin');
-      } else {
-        setError(data.message || 'Invalid credentials.');
+      // Map usernames to dummy emails if they don't look like emails
+      let loginEmail = email;
+      if (!email.includes('@')) {
+        if (email === 'admin') loginEmail = 'admin@luxury.com';
+        else if (email === 'knight') loginEmail = 'knight@luxury.com';
+        else loginEmail = `${email}@luxury.com`;
       }
-    } catch (error) {
+
+      await signInWithEmailAndPassword(auth, loginEmail, password);
+      navigate('/admin');
+    } catch (error: any) {
       console.error('Login failed:', error);
-      setError('Connection error. Please try again.');
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+        setError('Invalid credentials. Please check your email/username and password.');
+      } else if (error.code === 'auth/invalid-email') {
+        setError('Please enter a valid email address.');
+      } else {
+        setError('Login failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -62,14 +63,14 @@ const Login = () => {
 
         <form onSubmit={handleLogin} className="space-y-4 text-left">
           <div>
-            <label className="text-[10px] uppercase tracking-widest text-ink/40 mb-1 block">Username</label>
+            <label className="text-[10px] uppercase tracking-widest text-ink/40 mb-1 block">Email or Username</label>
             <div className="relative">
               <User className="absolute left-4 top-1/2 -translate-y-1/2 text-ink/30" size={18} />
               <input 
                 type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter username"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter email or username"
                 className="w-full bg-cream/50 border border-black/5 rounded-xl py-3 pl-12 pr-4 outline-none focus:border-royal-blue transition-colors"
                 required
               />
@@ -104,6 +105,12 @@ const Login = () => {
             )}
           </button>
         </form>
+        <div className="mt-8 pt-8 border-t border-black/5">
+          <p className="text-[10px] text-ink/40 uppercase tracking-widest leading-relaxed">
+            Note: Admin accounts must be created in the Firebase Console. 
+            Use your registered email or mapped username to access.
+          </p>
+        </div>
       </motion.div>
     </main>
   );

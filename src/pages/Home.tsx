@@ -24,7 +24,7 @@ const Home = () => {
           {
             id: '1',
             name: 'Ultra-Soft Cotton Pads',
-            price: 1200,
+            price: '1200',
             image: 'https://picsum.photos/seed/pads/600/800',
             category: 'pads',
             description: 'Premium organic cotton pads for ultimate comfort.'
@@ -32,7 +32,7 @@ const Home = () => {
           {
             id: '2',
             name: 'Velvet Accent Chair',
-            price: 45000,
+            price: '45000',
             image: 'https://picsum.photos/seed/chair/600/800',
             category: 'furniture',
             description: 'A touch of luxury for your reading nook.'
@@ -40,7 +40,7 @@ const Home = () => {
           {
             id: '3',
             name: 'Hand-Woven Silk Rug',
-            price: 89000,
+            price: '89000',
             image: 'https://picsum.photos/seed/rug/600/800',
             category: 'rugs',
             description: 'Artisanal silk rug with intricate patterns.'
@@ -48,7 +48,7 @@ const Home = () => {
           {
             id: '4',
             name: 'Midnight Jasmine Candle',
-            price: 3500,
+            price: '3500',
             image: 'https://picsum.photos/seed/candle/600/800',
             category: 'candles',
             description: 'Hand-poured soy candle with calming scents.'

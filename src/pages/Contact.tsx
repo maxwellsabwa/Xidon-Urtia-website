@@ -1,15 +1,32 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Mail, Phone, MapPin, Send } from 'lucide-react';
+import { db } from '../firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 const Contact = () => {
+  const [content, setContent] = useState({
+    heroTitle: 'Contact Us',
+    heroSubtitle: "We'd love to hear from you. Whether you have a question about our collections or just want to say hello.",
+    heroImage: 'https://picsum.photos/seed/contact/1920/1080'
+  });
+
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'pageContent', 'contact'), (doc) => {
+      if (doc.exists()) {
+        setContent(doc.data() as any);
+      }
+    });
+    return () => unsub();
+  }, []);
+
   return (
     <main className="pt-32 pb-24">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-20">
           <span className="text-xs uppercase tracking-[0.3em] text-royal-blue font-bold mb-4 block">Get in Touch</span>
-          <h1 className="text-5xl md:text-7xl font-serif mb-6">Contact <span className="italic text-royal-blue">Us</span></h1>
+          <h1 className="text-5xl md:text-7xl font-serif mb-6">{content.heroTitle}</h1>
           <p className="text-ink/60 max-w-2xl mx-auto text-lg leading-relaxed">
-            We'd love to hear from you. Whether you have a question about our collections or just want to say hello.
+            {content.heroSubtitle}
           </p>
         </div>
 
