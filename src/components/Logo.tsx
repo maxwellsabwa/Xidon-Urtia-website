@@ -9,9 +9,6 @@ const Logo: React.FC<LogoProps> = ({ className = '', variant = 'brand' }) => {
   const logoUrl = "https://storage.googleapis.com/static.ai.studio/v1/projects/ais-dev-zgjgm46rodiqkmqlhv3usp-647841361541/images/88888888-8888-8888-8888-888888888888.png";
   const [imgSrc, setImgSrc] = React.useState(logoUrl);
   
-  // Luxury lotus logo as a fallback
-  const fallbackLogo = "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=2070&auto=format&fit=crop";
-  
   return (
     <div className={`flex items-center gap-3 ${className}`}>
       <div className={`relative w-12 h-12 rounded-full flex items-center justify-center shadow-lg overflow-hidden border border-logo-gold/20 bg-white`}>
@@ -20,7 +17,6 @@ const Logo: React.FC<LogoProps> = ({ className = '', variant = 'brand' }) => {
           alt="Xidon Urtia Logo" 
           className="w-full h-full object-cover"
           referrerPolicy="no-referrer"
-          onError={() => setImgSrc(fallbackLogo)}
         />
       </div>
       <div className="flex flex-col">

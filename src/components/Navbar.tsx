@@ -63,7 +63,7 @@ const Navbar = () => {
             <Link to={user ? (role === 'admin' ? '/admin' : '/') : '/login'} className="p-2 hover:bg-black/5 rounded-full transition-colors">
               <UserIcon size={20} className={user ? 'text-royal-blue' : ''} />
             </Link>
-            <button className="p-2 hover:bg-black/5 rounded-full transition-colors relative">
+            <Link to="/cart" className="p-2 hover:bg-black/5 rounded-full transition-colors relative">
               <ShoppingBag size={20} />
               {cartCount > 0 && (
                 <motion.span 
@@ -75,7 +75,7 @@ const Navbar = () => {
                   {cartCount}
                 </motion.span>
               )}
-            </button>
+            </Link>
             <button 
               className="md:hidden p-2 hover:bg-black/5 rounded-full transition-colors"
               onClick={() => setIsOpen(true)}

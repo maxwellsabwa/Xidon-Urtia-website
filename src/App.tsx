@@ -12,6 +12,7 @@ import CategoryPage from './pages/CategoryPage';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import Login from './pages/Login';
+import Cart from './pages/Cart';
 import AdminDashboard from './pages/AdminDashboard';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
@@ -26,6 +27,7 @@ export default function App() {
             <div className="flex-grow">
               <Routes>
                 <Route path="/" element={<Home />} />
+                <Route path="/cart" element={<Cart />} />
                 <Route 
                   path="/pads" 
                   element={

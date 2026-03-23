@@ -30,8 +30,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (userDoc.exists()) {
           setRole(userDoc.data().role);
         } else {
-          // Default role for new users
-          const defaultRole = currentUser.email === 'maxwellsabwa@gmail.com' ? 'admin' : 'customer';
+          // Define the two admin emails
+          const adminEmails = ['maxwellsabwa@gmail.com', 'admin2@gmail.com'];
+          const defaultRole = adminEmails.includes(currentUser.email || '') ? 'admin' : 'customer';
           await setDoc(doc(db, 'users', currentUser.uid), {
             email: currentUser.email,
             role: defaultRole

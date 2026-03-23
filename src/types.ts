@@ -21,3 +21,7 @@ export interface BlogPost {
   image: string;
   date: string;
 }
+
+export interface CartItem extends Product {
+  quantity: number;
+}
