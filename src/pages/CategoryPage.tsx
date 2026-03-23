@@ -18,7 +18,9 @@ const CategoryPage: React.FC<CategoryPageProps> = ({ title, category, descriptio
     setLoading(true);
     const q = query(collection(db, 'products'), where('category', '==', category));
     const unsub = onSnapshot(q, (snapshot) => {
-      setProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product)));
+      const fetchedProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+      console.log(`Fetched ${fetchedProducts.length} products for category: ${category}`);
+      setProducts(fetchedProducts);
       setLoading(false);
     });
     return () => unsub();

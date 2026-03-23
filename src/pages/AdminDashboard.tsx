@@ -42,21 +42,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     if (role === 'admin') {
       const unsubProducts = onSnapshot(collection(db, 'products'), (snapshot) => {
-        if (!snapshot.empty) {
-          setProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-        } else {
-          // Seed initial products
-          const initialProducts = [
-            { name: 'Ultra Soft Pads', price: '1500', category: 'pads', description: 'Premium comfort for daily use.', image: 'https://picsum.photos/seed/pads1/400/400', stock: 50 },
-            { name: 'Luxury Facial Tissue', price: '800', category: 'tissues', description: 'Gentle on skin, tough on messes.', image: 'https://picsum.photos/seed/tissue1/400/400', stock: 100 },
-            { name: 'Artisanal Coffee Table', price: '45000', category: 'furniture', description: 'Handcrafted oak wood table.', image: 'https://picsum.photos/seed/furniture1/400/400', stock: 5 },
-            { name: 'Persian Style Rug', price: '12000', category: 'rugs', description: 'Elegant patterns for your living room.', image: 'https://picsum.photos/seed/rugs1/400/400', stock: 10 },
-            { name: 'Scented Soy Candle', price: '2500', category: 'candles', description: 'Lavender and vanilla infusion.', image: 'https://picsum.photos/seed/candle1/400/400', stock: 30 }
-          ];
-          initialProducts.forEach(async (product) => {
-            await addDoc(collection(db, 'products'), product);
-          });
-        }
+        setProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       });
       const unsubOrders = onSnapshot(query(collection(db, 'orders'), orderBy('createdAt', 'desc')), (snapshot) => {
         setOrders(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
@@ -93,6 +79,29 @@ const AdminDashboard = () => {
   const handleLogout = () => {
     logout();
     navigate('/');
+  };
+
+  const handleSeedDatabase = async () => {
+    try {
+      const initialProducts = [
+        { name: 'Ultra Soft Pads (Day)', price: '1500', category: 'pads', description: 'Premium comfort for daily use. Ultra-thin yet highly absorbent.', image: 'https://picsum.photos/seed/pads1/400/400', stock: 50, featured: true },
+        { name: 'Overnight Luxury Pads', price: '1800', category: 'pads', description: 'Maximum protection for a peaceful night\'s sleep.', image: 'https://picsum.photos/seed/pads2/400/400', stock: 40, featured: true },
+        { name: 'Bamboo Eco-Pads', price: '2000', category: 'pads', description: 'Sustainable, biodegradable, and incredibly soft on skin.', image: 'https://picsum.photos/seed/pads3/400/400', stock: 30 },
+        { name: 'Active Wear Pads', price: '1600', category: 'pads', description: 'Designed for movement. Stays in place no matter what.', image: 'https://picsum.photos/seed/pads4/400/400', stock: 60 },
+        { name: 'Luxury Facial Tissue', price: '800', category: 'tissues', description: 'Gentle on skin, tough on messes.', image: 'https://picsum.photos/seed/tissue1/400/400', stock: 100 },
+        { name: 'Artisanal Coffee Table', price: '45000', category: 'furniture', description: 'Handcrafted oak wood table.', image: 'https://picsum.photos/seed/furniture1/400/400', stock: 5, featured: true },
+        { name: 'Persian Style Rug', price: '12000', category: 'rugs', description: 'Elegant patterns for your living room.', image: 'https://picsum.photos/seed/rugs1/400/400', stock: 10 },
+        { name: 'Scented Soy Candle', price: '2500', category: 'candles', description: 'Lavender and vanilla infusion.', image: 'https://picsum.photos/seed/candle1/400/400', stock: 30 }
+      ];
+      
+      for (const product of initialProducts) {
+        await addDoc(collection(db, 'products'), product);
+      }
+      alert('Database seeded successfully!');
+    } catch (error) {
+      console.error("Error seeding database:", error);
+      alert('Error seeding database. Check console.');
+    }
   };
 
   const handleUpdateUserRole = async (userId: string, newRole: 'admin' | 'user') => {
@@ -190,6 +199,12 @@ const AdminDashboard = () => {
               <p className="text-[10px] uppercase tracking-widest font-bold text-ink/40">Authenticated as</p>
               <p className="text-xs font-bold text-royal-blue">{user.email}</p>
             </div>
+            <button 
+              onClick={handleSeedDatabase}
+              className="flex items-center gap-2 text-xs uppercase tracking-widest font-bold hover:text-royal-blue transition-colors bg-white px-6 py-3 rounded-xl luxury-shadow border border-royal-blue/10"
+            >
+              <Package size={16} /> Seed DB
+            </button>
             <button 
               onClick={handleLogout}
               className="flex items-center gap-2 text-xs uppercase tracking-widest font-bold hover:text-royal-blue transition-colors bg-white px-6 py-3 rounded-xl luxury-shadow"

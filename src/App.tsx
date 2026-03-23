@@ -27,25 +27,32 @@ const FirebaseInitializer = () => {
   const { role } = useAuth();
 
   React.useEffect(() => {
-    // Seed products if empty and user is admin
-    if (role === 'admin') {
-      const unsub = onSnapshot(collection(db, 'products'), (snapshot) => {
-        if (snapshot.empty) {
-          const initialProducts = [
-            { name: 'Ultra Soft Pads', price: '1500', category: 'pads', description: 'Premium comfort for daily use.', image: 'https://picsum.photos/seed/pads1/400/400', stock: 50, featured: true },
-            { name: 'Luxury Facial Tissue', price: '800', category: 'tissues', description: 'Gentle on skin, tough on messes.', image: 'https://picsum.photos/seed/tissue1/400/400', stock: 100 },
-            { name: 'Artisanal Coffee Table', price: '45000', category: 'furniture', description: 'Handcrafted oak wood table.', image: 'https://picsum.photos/seed/furniture1/400/400', stock: 5, featured: true },
-            { name: 'Persian Style Rug', price: '12000', category: 'rugs', description: 'Elegant patterns for your living room.', image: 'https://picsum.photos/seed/rugs1/400/400', stock: 10 },
-            { name: 'Scented Soy Candle', price: '2500', category: 'candles', description: 'Lavender and vanilla infusion.', image: 'https://picsum.photos/seed/candle1/400/400', stock: 30 }
-          ];
-          initialProducts.forEach(async (product) => {
+    // Seed products if empty
+    // We run this regardless of role in dev to ensure data exists
+    const unsub = onSnapshot(collection(db, 'products'), (snapshot) => {
+      if (snapshot.empty) {
+        console.log("Seeding initial products...");
+        const initialProducts = [
+          { name: 'Ultra Soft Pads (Day)', price: '1500', category: 'pads', description: 'Premium comfort for daily use. Ultra-thin yet highly absorbent.', image: 'https://picsum.photos/seed/pads1/400/400', stock: 50, featured: true },
+          { name: 'Overnight Luxury Pads', price: '1800', category: 'pads', description: 'Maximum protection for a peaceful night\'s sleep.', image: 'https://picsum.photos/seed/pads2/400/400', stock: 40, featured: true },
+          { name: 'Bamboo Eco-Pads', price: '2000', category: 'pads', description: 'Sustainable, biodegradable, and incredibly soft on skin.', image: 'https://picsum.photos/seed/pads3/400/400', stock: 30 },
+          { name: 'Active Wear Pads', price: '1600', category: 'pads', description: 'Designed for movement. Stays in place no matter what.', image: 'https://picsum.photos/seed/pads4/400/400', stock: 60 },
+          { name: 'Luxury Facial Tissue', price: '800', category: 'tissues', description: 'Gentle on skin, tough on messes.', image: 'https://picsum.photos/seed/tissue1/400/400', stock: 100 },
+          { name: 'Artisanal Coffee Table', price: '45000', category: 'furniture', description: 'Handcrafted oak wood table.', image: 'https://picsum.photos/seed/furniture1/400/400', stock: 5, featured: true },
+          { name: 'Persian Style Rug', price: '12000', category: 'rugs', description: 'Elegant patterns for your living room.', image: 'https://picsum.photos/seed/rugs1/400/400', stock: 10 },
+          { name: 'Scented Soy Candle', price: '2500', category: 'candles', description: 'Lavender and vanilla infusion.', image: 'https://picsum.photos/seed/candle1/400/400', stock: 30 }
+        ];
+        initialProducts.forEach(async (product) => {
+          try {
             await addDoc(collection(db, 'products'), product);
-          });
-        }
-      });
-      return () => unsub();
-    }
-  }, [role]);
+          } catch (e) {
+            console.error("Error seeding product:", e);
+          }
+        });
+      }
+    });
+    return () => unsub();
+  }, []);
 
   return null;
 };

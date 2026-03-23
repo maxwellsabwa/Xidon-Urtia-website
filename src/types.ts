@@ -6,6 +6,7 @@ export interface Product {
   category: 'pads' | 'tissues' | 'furniture' | 'rugs' | 'candles';
   description: string;
   featured?: boolean;
+  stock?: number;
 }
 
 export interface Testimonial {
