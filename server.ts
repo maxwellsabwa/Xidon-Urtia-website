@@ -16,22 +16,30 @@ async function startServer() {
   // Admin Login API endpoint
   app.post("/api/login", (req, res) => {
     const { username, password } = req.body;
+    console.log(`Login attempt for user: ${username}`);
     
     try {
       const adminsPath = path.join(process.cwd(), 'admins.json');
+      console.log(`Reading admins from: ${adminsPath}`);
+      
+      if (!fs.existsSync(adminsPath)) {
+        console.error("admins.json not found!");
+        return res.status(500).json({ success: false, message: "Configuration error: admins.json missing" });
+      }
+
       const adminsData = fs.readFileSync(adminsPath, 'utf-8');
       const admins = JSON.parse(adminsData);
       
       const admin = admins.find((a: any) => a.username === username && a.password === password);
       
       if (admin) {
-        // In a real app, you'd use JWT or sessions. 
-        // For this simple setup, we'll return a success flag and user info.
+        console.log("Login successful");
         res.json({ 
           success: true, 
           user: { username: admin.username, role: 'admin' } 
         });
       } else {
+        console.warn("Invalid credentials provided");
         res.status(401).json({ success: false, message: "Invalid username or password" });
       }
     } catch (error) {
@@ -63,7 +71,9 @@ async function startServer() {
 
   const getProducts = () => {
     try {
+      console.log(`Fetching products from: ${productsPath}`);
       if (!fs.existsSync(productsPath)) {
+        console.warn("products.json not found, creating empty file");
         fs.writeFileSync(productsPath, JSON.stringify([]));
       }
       const data = fs.readFileSync(productsPath, 'utf-8');
