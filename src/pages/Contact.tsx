@@ -21,8 +21,7 @@ const Contact = () => {
               </div>
               <div>
                 <h4 className="font-serif text-xl mb-2">Email Us</h4>
-                <p className="text-ink/60">concierge@xidonurtia.com</p>
-                <p className="text-ink/60">press@xidonurtia.com</p>
+                <a href="mailto:xidonurtia@gmail.com" className="text-ink/60 hover:text-royal-blue transition-colors">xidonurtia@gmail.com</a>
               </div>
             </div>
 
@@ -32,8 +31,8 @@ const Contact = () => {
               </div>
               <div>
                 <h4 className="font-serif text-xl mb-2">Call Us</h4>
-                <p className="text-ink/60">+1 (555) 123-4567</p>
-                <p className="text-ink/60">Mon - Fri, 9am - 6pm EST</p>
+                <a href="tel:0768303439" className="text-ink/60 hover:text-royal-blue transition-colors">0768303439</a>
+                <p className="text-ink/60">Mon - Fri, 9am - 6pm</p>
               </div>
             </div>
 
@@ -43,18 +42,54 @@ const Contact = () => {
               </div>
               <div>
                 <h4 className="font-serif text-xl mb-2">Visit Us</h4>
-                <p className="text-ink/60">742 Luxury Avenue</p>
-                <p className="text-ink/60">New York, NY 10001</p>
+                <a 
+                  href="https://www.google.com/maps/search/?api=1&query=Katani,Mavoko+County" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-ink/60 hover:text-royal-blue transition-colors"
+                >
+                  Katani, Mavoko County
+                </a>
               </div>
             </div>
           </div>
 
           <div className="lg:w-2/3 bg-white p-12 rounded-3xl luxury-shadow">
-            <form className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <form 
+              className="grid grid-cols-1 md:grid-cols-2 gap-8"
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.currentTarget);
+                const data = Object.fromEntries(formData.entries());
+                
+                try {
+                  const response = await fetch('/api/contact', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                  });
+                  
+                  if (response.ok) {
+                    alert('Your message has been sent successfully!');
+                    (e.target as HTMLFormElement).reset();
+                  } else {
+                    throw new Error('Failed to send message');
+                  }
+                } catch (error) {
+                  console.error('API Error:', error);
+                  // Construct mailto link as a fallback
+                  const subject = `Contact Form: ${data.subject}`;
+                  const body = `Name: ${data.name}\nEmail: ${data.email}\n\nMessage:\n${data.message}`;
+                  window.location.href = `mailto:xidonurtia@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                }
+              }}
+            >
               <div className="flex flex-col gap-2">
                 <label className="text-[10px] uppercase tracking-widest font-bold text-ink/40">Full Name</label>
                 <input 
                   type="text" 
+                  name="name"
+                  required
                   className="bg-cream border-none p-4 rounded-xl focus:ring-2 focus:ring-luxury-pink outline-none transition-all"
                   placeholder="Jane Doe"
                 />
@@ -63,13 +98,18 @@ const Contact = () => {
                 <label className="text-[10px] uppercase tracking-widest font-bold text-ink/40">Email Address</label>
                 <input 
                   type="email" 
+                  name="email"
+                  required
                   className="bg-cream border-none p-4 rounded-xl focus:ring-2 focus:ring-luxury-pink outline-none transition-all"
                   placeholder="jane@example.com"
                 />
               </div>
               <div className="flex flex-col gap-2 md:col-span-2">
                 <label className="text-[10px] uppercase tracking-widest font-bold text-ink/40">Subject</label>
-                <select className="bg-cream border-none p-4 rounded-xl focus:ring-2 focus:ring-luxury-pink outline-none transition-all">
+                <select 
+                  name="subject"
+                  className="bg-cream border-none p-4 rounded-xl focus:ring-2 focus:ring-luxury-pink outline-none transition-all"
+                >
                   <option>General Inquiry</option>
                   <option>Order Support</option>
                   <option>Press & Media</option>
@@ -79,13 +119,18 @@ const Contact = () => {
               <div className="flex flex-col gap-2 md:col-span-2">
                 <label className="text-[10px] uppercase tracking-widest font-bold text-ink/40">Message</label>
                 <textarea 
+                  name="message"
+                  required
                   rows={6}
                   className="bg-cream border-none p-4 rounded-xl focus:ring-2 focus:ring-luxury-pink outline-none transition-all resize-none"
                   placeholder="How can we help you?"
                 />
               </div>
               <div className="md:col-span-2">
-                <button className="w-full bg-ink text-cream py-5 rounded-xl uppercase tracking-widest font-bold hover:bg-luxury-pink hover:text-ink transition-all flex items-center justify-center gap-3">
+                <button 
+                  type="submit"
+                  className="w-full bg-ink text-cream py-5 rounded-xl uppercase tracking-widest font-bold hover:bg-luxury-pink hover:text-ink transition-all flex items-center justify-center gap-3"
+                >
                   Send Message <Send size={18} />
                 </button>
               </div>

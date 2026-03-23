@@ -45,23 +45,32 @@ const Footer = () => {
             <li><Link to="/contact" className="hover:text-royal-blue transition-colors">Contact Us</Link></li>
             <li><a href="#" className="hover:text-royal-blue transition-colors">Sustainability</a></li>
             <li><a href="#" className="hover:text-royal-blue transition-colors">Shipping & Returns</a></li>
-            <li><a href="#" className="hover:text-royal-blue transition-colors">Privacy Policy</a></li>
           </ul>
         </div>
 
         <div>
-          <h4 className="font-serif text-lg mb-6 uppercase tracking-widest">Newsletter</h4>
-          <p className="text-sm text-cream/60 mb-6">Join our elite circle for exclusive offers and new collection previews.</p>
-          <form className="flex flex-col gap-4">
-            <input 
-              type="email" 
-              placeholder="Your email address" 
-              className="bg-transparent border-b border-cream/20 py-2 text-sm focus:border-royal-blue outline-none transition-colors"
-            />
-            <button className="bg-royal-blue text-cream px-6 py-3 text-xs uppercase tracking-widest font-bold hover:bg-white hover:text-ink transition-colors">
-              Subscribe
-            </button>
-          </form>
+          <h4 className="font-serif text-lg mb-6 uppercase tracking-widest">Contact</h4>
+          <ul className="flex flex-col gap-4 text-sm text-cream/60">
+            <li className="flex items-center gap-3">
+              <Phone size={14} className="text-royal-blue" />
+              <a href="tel:0768303439" className="hover:text-royal-blue transition-colors">0768303439</a>
+            </li>
+            <li className="flex items-center gap-3">
+              <Mail size={14} className="text-royal-blue" />
+              <a href="mailto:xidonurtia@gmail.com" className="hover:text-royal-blue transition-colors">xidonurtia@gmail.com</a>
+            </li>
+            <li className="flex items-start gap-3">
+              <MapPin size={14} className="text-royal-blue mt-1" />
+              <a 
+                href="https://www.google.com/maps/search/?api=1&query=Katani,Mavoko+County" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="hover:text-royal-blue transition-colors"
+              >
+                Katani, Mavoko County
+              </a>
+            </li>
+          </ul>
         </div>
       </div>
 
