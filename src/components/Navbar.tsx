@@ -11,8 +11,16 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { cartCount } = useCart();
-  const { user, role } = useAuth();
+  const { user, role, logout } = useAuth();
   const location = useLocation();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -57,6 +65,14 @@ const Navbar = () => {
                 {link.name}
               </Link>
             ))}
+            {user && (
+              <button 
+                onClick={handleLogout}
+                className="text-xs uppercase tracking-[0.2em] text-ink/70 hover:text-royal-blue transition-colors cursor-pointer"
+              >
+                Logout
+              </button>
+            )}
           </div>
 
           <div className="flex items-center gap-4">
@@ -121,6 +137,14 @@ const Navbar = () => {
                     {link.name}
                   </Link>
                 ))}
+                {user && (
+                  <button 
+                    onClick={handleLogout}
+                    className="text-lg uppercase tracking-widest text-left text-ink/70 hover:text-royal-blue transition-colors"
+                  >
+                    Logout
+                  </button>
+                )}
               </div>
 
               <div className="mt-auto pt-8 border-t border-black/5">
