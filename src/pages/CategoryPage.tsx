@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import ProductCard from '../components/ProductCard';
 import { Product } from '../types';
+import { db } from '../firebase';
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
 
 interface CategoryPageProps {
   title: string;
@@ -13,20 +15,13 @@ const CategoryPage: React.FC<CategoryPageProps> = ({ title, category, descriptio
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch('/api/products');
-        const data = await response.json();
-        const filtered = data.filter((p: any) => p.category === category);
-        setProducts(filtered);
-      } catch (error) {
-        console.error("Error fetching products:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProducts();
+    setLoading(true);
+    const q = query(collection(db, 'products'), where('category', '==', category));
+    const unsub = onSnapshot(q, (snapshot) => {
+      setProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product)));
+      setLoading(false);
+    });
+    return () => unsub();
   }, [category]);
 
   return (

@@ -14,7 +14,6 @@ import Contact from './pages/Contact';
 import Login from './pages/Login';
 import Cart from './pages/Cart';
 import AdminDashboard from './pages/AdminDashboard';
-import AdminAddProduct from './pages/AdminAddProduct';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
 
@@ -83,7 +82,6 @@ export default function App() {
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/admin" element={<AdminDashboard />} />
-                <Route path="/admin/add-product" element={<AdminAddProduct />} />
               </Routes>
             </div>
             <Footer />

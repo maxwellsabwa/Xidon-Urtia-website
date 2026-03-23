@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, onSnapshot, query, orderBy, updateDoc, doc } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
@@ -36,20 +36,11 @@ const AdminDashboard = () => {
     }
   }, [user, role, loading, navigate]);
 
-  const fetchProducts = async () => {
-    try {
-      const response = await fetch('/api/products');
-      const data = await response.json();
-      setProducts(data);
-    } catch (error) {
-      console.error("Error fetching products:", error);
-    }
-  };
-
   useEffect(() => {
     if (role === 'admin') {
-      fetchProducts();
-      
+      const unsubProducts = onSnapshot(collection(db, 'products'), (snapshot) => {
+        setProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      });
       const unsubOrders = onSnapshot(query(collection(db, 'orders'), orderBy('createdAt', 'desc')), (snapshot) => {
         setOrders(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       });
@@ -58,6 +49,7 @@ const AdminDashboard = () => {
       });
 
       return () => {
+        unsubProducts();
         unsubOrders();
         unsubContent();
       };
@@ -71,15 +63,8 @@ const AdminDashboard = () => {
 
   const handleUpdateProduct = async (id: string) => {
     try {
-      const response = await fetch(`/api/products/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editForm)
-      });
-      if (response.ok) {
-        setIsEditing(null);
-        fetchProducts();
-      }
+      await updateDoc(doc(db, 'products', id), editForm);
+      setIsEditing(null);
     } catch (error) {
       console.error("Error updating product:", error);
     }
@@ -88,12 +73,7 @@ const AdminDashboard = () => {
   const handleDeleteProduct = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
       try {
-        const response = await fetch(`/api/products/${id}`, {
-          method: 'DELETE'
-        });
-        if (response.ok) {
-          fetchProducts();
-        }
+        await deleteDoc(doc(db, 'products', id));
       } catch (error) {
         console.error("Error deleting product:", error);
       }
@@ -161,12 +141,6 @@ const AdminDashboard = () => {
             >
               <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-serif italic">Inventory</h2>
-                <Link 
-                  to="/admin/add-product"
-                  className="bg-royal-blue text-white px-6 py-3 rounded-xl text-xs uppercase tracking-widest font-bold flex items-center gap-2 hover:bg-ink transition-all"
-                >
-                  <Plus size={16} /> Add Product
-                </Link>
               </div>
 
               <div className="grid grid-cols-1 gap-4">
@@ -217,17 +191,12 @@ const AdminDashboard = () => {
                             />
                           </div>
                           <div className="md:col-span-2">
-                            <label className="text-[10px] uppercase font-bold text-ink/40 mb-1 block">Description (Max 40 words)</label>
+                            <label className="text-[10px] uppercase font-bold text-ink/40 mb-1 block">Description</label>
                             <textarea 
                               className="w-full border p-2 rounded-lg resize-none" 
                               rows={3}
                               value={editForm.description} 
-                              onChange={e => {
-                                const words = e.target.value.trim().split(/\s+/);
-                                if (words.length <= 40) {
-                                  setEditForm({...editForm, description: e.target.value});
-                                }
-                              }}
+                              onChange={e => setEditForm({...editForm, description: e.target.value})}
                             />
                           </div>
                         </div>

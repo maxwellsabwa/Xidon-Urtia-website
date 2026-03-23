@@ -6,25 +6,58 @@ import Testimonials from '../components/Testimonials';
 import BlogSection from '../components/BlogSection';
 import { motion } from 'motion/react';
 import { Product } from '../types';
+import { db } from '../firebase';
+import { collection, onSnapshot } from 'firebase/firestore';
 
 const Home = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const unsub = onSnapshot(collection(db, 'products'), (snapshot) => {
       setLoading(true);
-      try {
-        const response = await fetch('/api/products');
-        const data = await response.json();
-        setProducts(data);
-      } catch (error) {
-        console.error("Error fetching products:", error);
-      } finally {
-        setLoading(false);
+      if (!snapshot.empty) {
+        setProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product)));
+      } else {
+        // Initial Seed or Fallback
+        setProducts([
+          {
+            id: '1',
+            name: 'Ultra-Soft Cotton Pads',
+            price: 1200,
+            image: 'https://picsum.photos/seed/pads/600/800',
+            category: 'pads',
+            description: 'Premium organic cotton pads for ultimate comfort.'
+          },
+          {
+            id: '2',
+            name: 'Velvet Accent Chair',
+            price: 45000,
+            image: 'https://picsum.photos/seed/chair/600/800',
+            category: 'furniture',
+            description: 'A touch of luxury for your reading nook.'
+          },
+          {
+            id: '3',
+            name: 'Hand-Woven Silk Rug',
+            price: 89000,
+            image: 'https://picsum.photos/seed/rug/600/800',
+            category: 'rugs',
+            description: 'Artisanal silk rug with intricate patterns.'
+          },
+          {
+            id: '4',
+            name: 'Midnight Jasmine Candle',
+            price: 3500,
+            image: 'https://picsum.photos/seed/candle/600/800',
+            category: 'candles',
+            description: 'Hand-poured soy candle with calming scents.'
+          }
+        ]);
       }
-    };
-    fetchProducts();
+      setLoading(false);
+    });
+    return () => unsub();
   }, []);
 
   return (
