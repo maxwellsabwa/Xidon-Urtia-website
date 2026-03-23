@@ -6,16 +6,15 @@ interface LogoProps {
 }
 
 const Logo: React.FC<LogoProps> = ({ className = '', variant = 'brand' }) => {
-  const logoUrl = "https://storage.googleapis.com/static.ai.studio/v1/projects/ais-dev-zgjgm46rodiqkmqlhv3usp-647841361541/images/88888888-8888-8888-8888-888888888888.png";
-  const [imgSrc, setImgSrc] = React.useState(logoUrl);
+  const logoUrl = "/logo.svg";
   
   return (
     <div className={`flex items-center gap-3 ${className}`}>
       <div className={`relative w-12 h-12 rounded-full flex items-center justify-center shadow-lg overflow-hidden border border-logo-gold/20 bg-white`}>
         <img 
-          src={imgSrc} 
+          src={logoUrl} 
           alt="Xidon Urtia Logo" 
-          className="w-full h-full object-cover"
+          className="w-full h-full object-contain p-1"
           referrerPolicy="no-referrer"
         />
       </div>

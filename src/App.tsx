@@ -12,22 +12,57 @@ import CategoryPage from './pages/CategoryPage';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import Login from './pages/Login';
+import SignUp from './pages/SignUp';
 import Cart from './pages/Cart';
 import AdminDashboard from './pages/AdminDashboard';
 import ProductDetail from './pages/ProductDetail';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
 
+import { collection, onSnapshot, addDoc } from 'firebase/firestore';
+import { db } from './firebase';
+import { useAuth } from './context/AuthContext';
+
+const FirebaseInitializer = () => {
+  const { role } = useAuth();
+
+  React.useEffect(() => {
+    // Seed products if empty and user is admin
+    if (role === 'admin') {
+      const unsub = onSnapshot(collection(db, 'products'), (snapshot) => {
+        if (snapshot.empty) {
+          const initialProducts = [
+            { name: 'Ultra Soft Pads', price: '1500', category: 'pads', description: 'Premium comfort for daily use.', image: 'https://picsum.photos/seed/pads1/400/400', stock: 50, featured: true },
+            { name: 'Luxury Facial Tissue', price: '800', category: 'tissues', description: 'Gentle on skin, tough on messes.', image: 'https://picsum.photos/seed/tissue1/400/400', stock: 100 },
+            { name: 'Artisanal Coffee Table', price: '45000', category: 'furniture', description: 'Handcrafted oak wood table.', image: 'https://picsum.photos/seed/furniture1/400/400', stock: 5, featured: true },
+            { name: 'Persian Style Rug', price: '12000', category: 'rugs', description: 'Elegant patterns for your living room.', image: 'https://picsum.photos/seed/rugs1/400/400', stock: 10 },
+            { name: 'Scented Soy Candle', price: '2500', category: 'candles', description: 'Lavender and vanilla infusion.', image: 'https://picsum.photos/seed/candle1/400/400', stock: 30 }
+          ];
+          initialProducts.forEach(async (product) => {
+            await addDoc(collection(db, 'products'), product);
+          });
+        }
+      });
+      return () => unsub();
+    }
+  }, [role]);
+
+  return null;
+};
+
 export default function App() {
   return (
     <AuthProvider>
       <CartProvider>
+        <FirebaseInitializer />
         <Router>
           <div className="flex flex-col min-h-screen">
             <Navbar />
             <div className="flex-grow">
               <Routes>
                 <Route path="/" element={<Home />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<SignUp />} />
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/product/:id" element={<ProductDetail />} />
                 <Route 
@@ -82,7 +117,6 @@ export default function App() {
                 />
                 <Route path="/about" element={<About />} />
                 <Route path="/contact" element={<Contact />} />
-                <Route path="/login" element={<Login />} />
                 <Route path="/admin" element={<AdminDashboard />} />
               </Routes>
             </div>

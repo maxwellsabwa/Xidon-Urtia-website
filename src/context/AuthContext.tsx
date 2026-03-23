@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { auth, db, onAuthStateChanged } from '../firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 interface User {
   uid: string;
@@ -33,8 +33,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (userDoc.exists()) {
           userRole = userDoc.data().role || 'user';
         } else if (firebaseUser.email === 'maxwellsabwa@gmail.com' || firebaseUser.email?.includes('admin@luxury.com')) {
-          // Default admin for the owner
+          // Default admin for the owner - bootstrap if not exists
           userRole = 'admin';
+          try {
+            await setDoc(doc(db, 'users', firebaseUser.uid), {
+              email: firebaseUser.email,
+              role: 'admin',
+              createdAt: new Date().toISOString()
+            }, { merge: true });
+          } catch (e) {
+            console.error("Failed to bootstrap admin role:", e);
+          }
         }
 
         const userData: User = {

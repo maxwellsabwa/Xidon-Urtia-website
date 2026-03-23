@@ -65,6 +65,14 @@ const Navbar = () => {
                 {link.name}
               </Link>
             ))}
+            {!user && (
+              <Link 
+                to="/signup"
+                className="text-xs uppercase tracking-[0.2em] text-ink/70 hover:text-royal-blue transition-colors"
+              >
+                Sign Up
+              </Link>
+            )}
             {user && (
               <button 
                 onClick={handleLogout}
@@ -137,6 +145,14 @@ const Navbar = () => {
                     {link.name}
                   </Link>
                 ))}
+                {!user && (
+                  <Link 
+                    to="/signup"
+                    className="text-lg uppercase tracking-widest text-ink/70 hover:text-royal-blue transition-colors"
+                  >
+                    Sign Up
+                  </Link>
+                )}
                 {user && (
                   <button 
                     onClick={handleLogout}
@@ -149,9 +165,16 @@ const Navbar = () => {
 
               <div className="mt-auto pt-8 border-t border-black/5">
                 <p className="text-xs uppercase tracking-widest text-ink/40 mb-4">Account</p>
-                <Link to={user ? '/admin' : '/login'} className="text-sm font-bold text-royal-blue">
-                  {user ? `Logged in as ${role}` : 'Sign In'}
-                </Link>
+                <div className="flex flex-col gap-2">
+                  <Link to={user ? '/admin' : '/login'} className="text-sm font-bold text-royal-blue">
+                    {user ? `Logged in as ${role}` : 'Sign In'}
+                  </Link>
+                  {!user && (
+                    <Link to="/signup" className="text-sm font-bold text-royal-blue">
+                      Create Account
+                    </Link>
+                  )}
+                </div>
               </div>
             </motion.div>
           </>

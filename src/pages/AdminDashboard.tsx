@@ -15,17 +15,20 @@ import {
   X, 
   LogOut,
   ChevronRight,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Users as UsersIcon,
+  Shield
 } from 'lucide-react';
 
 const AdminDashboard = () => {
   const { user, role, loading, logout } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'products' | 'content' | 'orders'>('products');
+  const [activeTab, setActiveTab] = useState<'products' | 'content' | 'orders' | 'users'>('products');
   
   const [products, setProducts] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [pageContent, setPageContent] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
   
   const [isEditing, setIsEditing] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<any>({});
@@ -39,10 +42,27 @@ const AdminDashboard = () => {
   useEffect(() => {
     if (role === 'admin') {
       const unsubProducts = onSnapshot(collection(db, 'products'), (snapshot) => {
-        setProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        if (!snapshot.empty) {
+          setProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        } else {
+          // Seed initial products
+          const initialProducts = [
+            { name: 'Ultra Soft Pads', price: '1500', category: 'pads', description: 'Premium comfort for daily use.', image: 'https://picsum.photos/seed/pads1/400/400', stock: 50 },
+            { name: 'Luxury Facial Tissue', price: '800', category: 'tissues', description: 'Gentle on skin, tough on messes.', image: 'https://picsum.photos/seed/tissue1/400/400', stock: 100 },
+            { name: 'Artisanal Coffee Table', price: '45000', category: 'furniture', description: 'Handcrafted oak wood table.', image: 'https://picsum.photos/seed/furniture1/400/400', stock: 5 },
+            { name: 'Persian Style Rug', price: '12000', category: 'rugs', description: 'Elegant patterns for your living room.', image: 'https://picsum.photos/seed/rugs1/400/400', stock: 10 },
+            { name: 'Scented Soy Candle', price: '2500', category: 'candles', description: 'Lavender and vanilla infusion.', image: 'https://picsum.photos/seed/candle1/400/400', stock: 30 }
+          ];
+          initialProducts.forEach(async (product) => {
+            await addDoc(collection(db, 'products'), product);
+          });
+        }
       });
       const unsubOrders = onSnapshot(query(collection(db, 'orders'), orderBy('createdAt', 'desc')), (snapshot) => {
         setOrders(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      });
+      const unsubUsers = onSnapshot(collection(db, 'users'), (snapshot) => {
+        setUsers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       });
       const unsubContent = onSnapshot(collection(db, 'pageContent'), (snapshot) => {
         if (!snapshot.empty) {
@@ -64,6 +84,7 @@ const AdminDashboard = () => {
       return () => {
         unsubProducts();
         unsubOrders();
+        unsubUsers();
         unsubContent();
       };
     }
@@ -72,6 +93,24 @@ const AdminDashboard = () => {
   const handleLogout = () => {
     logout();
     navigate('/');
+  };
+
+  const handleUpdateUserRole = async (userId: string, newRole: 'admin' | 'user') => {
+    try {
+      await updateDoc(doc(db, 'users', userId), { role: newRole });
+    } catch (error) {
+      console.error("Error updating user role:", error);
+    }
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    if (window.confirm('Are you sure you want to delete this user profile? This does not delete their Auth account.')) {
+      try {
+        await deleteDoc(doc(db, 'users', userId));
+      } catch (error) {
+        console.error("Error deleting user:", error);
+      }
+    }
   };
 
   const handleUpdateProduct = async (id: string) => {
@@ -109,7 +148,8 @@ const AdminDashboard = () => {
     category: 'pads',
     description: '',
     image: '',
-    stock: 0
+    stock: 0,
+    featured: false
   });
 
   const handleAddProduct = async (e: React.FormEvent) => {
@@ -181,6 +221,13 @@ const AdminDashboard = () => {
           >
             Orders
             {activeTab === 'orders' && <motion.div layoutId="tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-royal-blue" />}
+          </button>
+          <button 
+            onClick={() => setActiveTab('users')}
+            className={`pb-4 text-xs uppercase tracking-widest font-bold transition-all relative ${activeTab === 'users' ? 'text-royal-blue' : 'text-ink/40'}`}
+          >
+            Users & Roles
+            {activeTab === 'users' && <motion.div layoutId="tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-royal-blue" />}
           </button>
         </div>
 
@@ -267,6 +314,16 @@ const AdminDashboard = () => {
                         onChange={e => setNewProduct({...newProduct, description: e.target.value})}
                       />
                     </div>
+                    <div className="md:col-span-2 flex items-center gap-3">
+                      <input 
+                        type="checkbox" 
+                        id="new-featured"
+                        checked={newProduct.featured}
+                        onChange={e => setNewProduct({...newProduct, featured: e.target.checked})}
+                        className="w-5 h-5 accent-royal-blue"
+                      />
+                      <label htmlFor="new-featured" className="text-xs font-bold uppercase tracking-widest cursor-pointer">Featured Product</label>
+                    </div>
                     <div className="md:col-span-2">
                       <button type="submit" className="w-full bg-royal-blue text-white py-4 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-ink transition-all">
                         Create Product
@@ -331,6 +388,16 @@ const AdminDashboard = () => {
                               onChange={e => setEditForm({...editForm, description: e.target.value})}
                             />
                           </div>
+                          <div className="md:col-span-2 flex items-center gap-3">
+                            <input 
+                              type="checkbox" 
+                              id={`edit-featured-${product.id}`}
+                              checked={editForm.featured}
+                              onChange={e => setEditForm({...editForm, featured: e.target.checked})}
+                              className="w-5 h-5 accent-royal-blue"
+                            />
+                            <label htmlFor={`edit-featured-${product.id}`} className="text-xs font-bold uppercase tracking-widest cursor-pointer">Featured Product</label>
+                          </div>
                         </div>
                       ) : (
                         <>
@@ -338,6 +405,9 @@ const AdminDashboard = () => {
                             <div>
                               <h3 className="font-bold text-lg">{product.name}</h3>
                               <p className="text-xs uppercase tracking-widest text-royal-blue font-bold mb-2">{product.category}</p>
+                              {product.featured && (
+                                <span className="inline-block bg-royal-blue/10 text-royal-blue text-[8px] uppercase tracking-widest font-bold px-2 py-1 rounded-full mb-2">Featured</span>
+                              )}
                             </div>
                             <p className="font-bold text-royal-blue">Ksh. {product.price.toLocaleString()}</p>
                           </div>
@@ -482,6 +552,74 @@ const AdminDashboard = () => {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === 'users' && (
+            <motion.div 
+              key="users"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              className="space-y-6"
+            >
+              <h2 className="text-2xl font-serif italic">User Management</h2>
+              <div className="bg-white rounded-3xl luxury-shadow overflow-hidden">
+                <table className="w-full text-left">
+                  <thead className="bg-ink text-white text-[10px] uppercase tracking-widest font-bold">
+                    <tr>
+                      <th className="p-6">User ID</th>
+                      <th className="p-6">Email</th>
+                      <th className="p-6">Role</th>
+                      <th className="p-6">Joined</th>
+                      <th className="p-6">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-black/5">
+                    {users.map(u => (
+                      <tr key={u.id} className="hover:bg-cream/50 transition-colors">
+                        <td className="p-6 font-mono text-xs">{u.id.slice(0, 8)}...</td>
+                        <td className="p-6">
+                          <p className="font-bold">{u.email}</p>
+                        </td>
+                        <td className="p-6">
+                          <div className="flex items-center gap-2">
+                            <Shield size={14} className={u.role === 'admin' ? 'text-royal-blue' : 'text-ink/20'} />
+                            <select 
+                              value={u.role}
+                              onChange={(e) => handleUpdateUserRole(u.id, e.target.value as any)}
+                              className="bg-transparent border-none text-xs font-bold uppercase tracking-widest focus:ring-0 cursor-pointer"
+                              disabled={u.email === user.email} // Don't let admin demote themselves
+                            >
+                              <option value="user">User</option>
+                              <option value="admin">Admin</option>
+                            </select>
+                          </div>
+                        </td>
+                        <td className="p-6 text-xs text-ink/40">
+                          {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'N/A'}
+                        </td>
+                        <td className="p-6">
+                          <button 
+                            onClick={() => handleDeleteUser(u.id)}
+                            disabled={u.email === user.email}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-30"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="p-6 bg-royal-blue/5 rounded-2xl border border-royal-blue/10">
+                <p className="text-[10px] uppercase tracking-widest font-bold text-royal-blue mb-2">Security Note</p>
+                <p className="text-xs text-ink/60 leading-relaxed">
+                  Deleting a user profile here only removes their role and metadata from Firestore. 
+                  To fully revoke access, you must also disable or delete their account in the Firebase Authentication console.
+                </p>
               </div>
             </motion.div>
           )}

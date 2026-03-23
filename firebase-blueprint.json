@@ -10,7 +10,8 @@
         "image": { "type": "string", "description": "Product image URL" },
         "category": { "type": "string", "description": "Product category" },
         "description": { "type": "string", "description": "Product description" },
-        "stock": { "type": "integer", "description": "Available stock" }
+        "stock": { "type": "integer", "description": "Available stock" },
+        "featured": { "type": "boolean", "description": "Whether the product is featured on the home page" }
       },
       "required": ["name", "price", "image", "category", "stock"]
     },
@@ -38,6 +39,17 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["customerName", "customerEmail", "items", "total", "status", "createdAt"]
+    },
+    "User": {
+      "title": "User",
+      "description": "A user profile with roles",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "format": "email" },
+        "role": { "type": "string", "enum": ["admin", "user"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email", "role"]
     }
   },
   "firestore": {
@@ -52,6 +64,10 @@
     "/orders/{orderId}": {
       "schema": "Order",
       "description": "Collection of customer orders"
+    },
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles and roles"
     }
   }
 }

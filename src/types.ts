@@ -5,6 +5,7 @@ export interface Product {
   image: string;
   category: 'pads' | 'tissues' | 'furniture' | 'rugs' | 'candles';
   description: string;
+  featured?: boolean;
 }
 
 export interface Testimonial {
