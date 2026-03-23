@@ -6,37 +6,28 @@ interface LogoProps {
 }
 
 const Logo: React.FC<LogoProps> = ({ className = '', variant = 'brand' }) => {
-  const isBrand = variant === 'brand';
-  const isLight = variant === 'light';
+  const logoUrl = "https://storage.googleapis.com/static.ai.studio/v1/projects/ais-dev-zgjgm46rodiqkmqlhv3usp-647841361541/images/88888888-8888-8888-8888-888888888888.png";
+  const [imgSrc, setImgSrc] = React.useState(logoUrl);
   
-  const bgColor = isBrand ? 'bg-royal-blue' : 'bg-transparent';
-  const iconColor = isBrand || isLight ? 'text-logo-gold' : 'text-royal-blue';
-  const textColor = isBrand || isLight ? 'text-white' : 'text-royal-blue';
-
+  // Luxury lotus logo as a fallback
+  const fallbackLogo = "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=2070&auto=format&fit=crop";
+  
   return (
     <div className={`flex items-center gap-3 ${className}`}>
-      <div className={`relative w-12 h-12 rounded-full flex items-center justify-center shadow-lg ${bgColor} overflow-hidden border border-logo-gold/20`}>
-        {/* Lotus Icon SVG */}
-        <svg 
-          viewBox="0 0 24 24" 
-          fill="none" 
-          className={`w-8 h-8 ${iconColor}`}
-          stroke="currentColor" 
-          strokeWidth="1.5" 
-          strokeLinecap="round" 
-          strokeLinejoin="round"
-        >
-          <path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z" />
-          <path d="M12 22s4-4.5 4-11.8A4 4 0 0 0 12 6a4 4 0 0 0-4 4.2c0 7.3 4 11.8 4 11.8z" />
-          <path d="M12 22s-12-2-12-7 4-5 4-5 2 5 2 5" />
-          <path d="M12 22s12-2 12-7-4-5-4-5-2 5-2 5" />
-        </svg>
+      <div className={`relative w-12 h-12 rounded-full flex items-center justify-center shadow-lg overflow-hidden border border-logo-gold/20 bg-white`}>
+        <img 
+          src={imgSrc} 
+          alt="Xidon Urtia Logo" 
+          className="w-full h-full object-cover"
+          referrerPolicy="no-referrer"
+          onError={() => setImgSrc(fallbackLogo)}
+        />
       </div>
       <div className="flex flex-col">
-        <span className={`font-serif text-xl tracking-[0.15em] uppercase leading-none font-bold ${textColor}`}>
+        <span className={`font-serif text-xl tracking-[0.15em] uppercase leading-none font-bold ${variant === 'light' ? 'text-white' : 'text-ink'}`}>
           Xidon Urtia
         </span>
-        <span className={`text-[8px] uppercase tracking-[0.2em] mt-1 font-medium ${isBrand || isLight ? 'text-logo-gold/80' : 'text-royal-blue/60'}`}>
+        <span className={`text-[8px] uppercase tracking-[0.2em] mt-1 font-medium ${variant === 'light' ? 'text-white/60' : 'text-royal-blue/80'}`}>
           Handmade Products • Est 2020
         </span>
       </div>

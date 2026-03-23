@@ -14,7 +14,10 @@ You can view the live interactive demo here: [Live App Link] (Replace with your 
 - **Real-time Cart**: Instant feedback when adding items to the shopping bag.
 
 ### 🔐 Administrative Suite
-- **Secure Admin Login**: Google Authentication integration for authorized personnel.
+- **Custom Admin Login**: In addition to Google Login, a custom Email/Password login is now available for quick client demos.
+- **Demo Credentials**:
+  - **Email**: `admin@xidonurtia.com`
+  - **Password**: `admin123`
 - **Stock Management**: Full CRUD (Create, Read, Update, Delete) capabilities for the product inventory.
 - **CMS (Content Management System)**: Update homepage hero titles, subtitles, and imagery without touching code.
 - **Order Tracking**: Real-time monitoring of customer orders and fulfillment status.
