@@ -43,12 +43,12 @@ const Contact = () => {
               <div>
                 <h4 className="font-serif text-xl mb-2">Visit Us</h4>
                 <a 
-                  href="https://www.google.com/maps/search/?api=1&query=Katani,Mavoko+County" 
+                  href="https://www.google.com/maps/search/?api=1&query=Katani,Mavoko+Sub-county,Machakos" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="text-ink/60 hover:text-royal-blue transition-colors"
                 >
-                  Katani, Mavoko County
+                  Katani, Mavoko Sub-county, Machakos
                 </a>
               </div>
             </div>

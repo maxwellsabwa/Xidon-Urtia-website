@@ -62,12 +62,12 @@ const Footer = () => {
             <li className="flex items-start gap-3">
               <MapPin size={14} className="text-royal-blue mt-1" />
               <a 
-                href="https://www.google.com/maps/search/?api=1&query=Katani,Mavoko+County" 
+                href="https://www.google.com/maps/search/?api=1&query=Katani,Mavoko+Sub-county,Machakos" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="hover:text-royal-blue transition-colors"
               >
-                Katani, Mavoko County
+                Katani, Mavoko Sub-county, Machakos
               </a>
             </li>
           </ul>

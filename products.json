@@ -1,0 +1,34 @@
+[
+  {
+    "id": "1",
+    "name": "Luxury Silk Pad",
+    "price": 1200,
+    "image": "https://picsum.photos/seed/pad1/600/800",
+    "category": "pads",
+    "description": "Experience ultimate comfort with our luxury silk pads. Designed for breathability and softness, these pads offer superior protection while feeling like a second skin. Perfect for sensitive skin and long-lasting freshness throughout the day."
+  },
+  {
+    "id": "2",
+    "name": "Bamboo Soft Tissue",
+    "price": 450,
+    "image": "https://picsum.photos/seed/tissue1/600/800",
+    "category": "tissues",
+    "description": "Eco-friendly bamboo tissues that are gentle on your skin and the planet. Highly absorbent and naturally antibacterial, these tissues provide a premium feel without the environmental cost. A sustainable choice for your daily needs."
+  },
+  {
+    "id": "3",
+    "name": "Velvet Lounge Chair",
+    "price": 45000,
+    "image": "https://picsum.photos/seed/chair1/600/800",
+    "category": "furniture",
+    "description": "A statement piece for any modern living room. This velvet lounge chair combines ergonomic design with opulent materials. The deep emerald green fabric and gold-finished legs create a sophisticated look that doesn't compromise on comfort."
+  },
+  {
+    "id": "4",
+    "name": "Hand-Woven Persian Rug",
+    "price": 85000,
+    "image": "https://picsum.photos/seed/rug1/600/800",
+    "category": "rugs",
+    "description": "Authentic hand-woven Persian rug featuring intricate traditional patterns. Made from 100% organic wool and natural dyes, this rug adds warmth and timeless elegance to your home. Each piece is unique and built to last generations."
+  }
+]

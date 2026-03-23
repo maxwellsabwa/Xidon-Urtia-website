@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ProductCard from '../components/ProductCard';
 import { Product } from '../types';
-import { db } from '../firebase';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
 
 interface CategoryPageProps {
   title: string;
@@ -12,26 +10,24 @@ interface CategoryPageProps {
 
 const CategoryPage: React.FC<CategoryPageProps> = ({ title, category, description }) => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const q = query(collection(db, 'products'), where('category', '==', category));
-    const unsub = onSnapshot(q, (snapshot) => {
-      if (!snapshot.empty) {
-        setProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product)));
-      } else {
-        // Mock data fallback
-        setProducts([...Array(8)].map((_, i) => ({
-          id: `${category}-${i}`,
-          name: `${title} Item ${i + 1}`,
-          price: `Ksh. ${(Math.random() * 10000 + 2000).toFixed(0)}`,
-          image: `https://picsum.photos/seed/${category}-${i}/600/800`,
-          category: category,
-          description: `A premium ${category} product for your luxury lifestyle.`
-        })));
+    const fetchProducts = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch('/api/products');
+        const data = await response.json();
+        const filtered = data.filter((p: any) => p.category === category);
+        setProducts(filtered);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      } finally {
+        setLoading(false);
       }
-    });
-    return () => unsub();
-  }, [category, title]);
+    };
+    fetchProducts();
+  }, [category]);
 
   return (
     <main className="pt-32 pb-24">
@@ -44,11 +40,17 @@ const CategoryPage: React.FC<CategoryPageProps> = ({ title, category, descriptio
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-16">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        {loading ? (
+          <div className="text-center py-20 text-ink/40 uppercase tracking-widest text-xs">Loading Collection...</div>
+        ) : products.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-16">
+            {products.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-20 text-ink/40 uppercase tracking-widest text-xs">No products found in this category.</div>
+        )}
       </div>
     </main>
   );

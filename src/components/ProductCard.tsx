@@ -77,7 +77,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       <div className="text-center">
         <p className="text-[10px] uppercase tracking-widest text-ink/40 mb-1">{product.category}</p>
         <h3 className="font-serif text-lg mb-2 group-hover:text-gold transition-colors">{product.name}</h3>
-        <p className="font-medium text-ink/80">{product.price.toString().startsWith('Ksh.') ? product.price : `Ksh. ${product.price}`}</p>
+        <p className="font-medium text-ink/80">Ksh. {product.price.toLocaleString()}</p>
       </div>
     </motion.div>
   );

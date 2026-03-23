@@ -54,7 +54,7 @@ const Cart = () => {
                   <p className="text-[10px] uppercase tracking-widest text-royal-blue font-bold mb-1">{item.category}</p>
                   <h3 className="text-xl font-serif mb-2">{item.name}</h3>
                   <p className="text-ink/60 text-sm mb-4 line-clamp-1">{item.description}</p>
-                  <p className="font-bold text-lg">{item.price}</p>
+                  <p className="font-bold text-lg">Ksh. {item.price.toLocaleString()}</p>
                 </div>
                 
                 <div className="flex flex-col items-center sm:items-end gap-4">

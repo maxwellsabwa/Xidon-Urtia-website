@@ -6,55 +6,25 @@ import Testimonials from '../components/Testimonials';
 import BlogSection from '../components/BlogSection';
 import { motion } from 'motion/react';
 import { Product } from '../types';
-import { db } from '../firebase';
-import { collection, onSnapshot } from 'firebase/firestore';
 
 const Home = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsub = onSnapshot(collection(db, 'products'), (snapshot) => {
-      if (!snapshot.empty) {
-        setProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product)));
-      } else {
-        // Fallback or Initial Seed
-        setProducts([
-          {
-            id: '1',
-            name: 'Ultra-Soft Cotton Pads',
-            price: 'Ksh. 1,200',
-            image: 'https://picsum.photos/seed/pads/600/800',
-            category: 'pads',
-            description: 'Premium organic cotton pads for ultimate comfort.'
-          },
-          {
-            id: '2',
-            name: 'Velvet Accent Chair',
-            price: 'Ksh. 45,000',
-            image: 'https://picsum.photos/seed/chair/600/800',
-            category: 'furniture',
-            description: 'A touch of luxury for your reading nook.'
-          },
-          {
-            id: '3',
-            name: 'Hand-Woven Silk Rug',
-            price: 'Ksh. 89,000',
-            image: 'https://picsum.photos/seed/rug/600/800',
-            category: 'rugs',
-            description: 'Artisanal silk rug with intricate patterns.'
-          },
-          {
-            id: '4',
-            name: 'Midnight Jasmine Candle',
-            price: 'Ksh. 3,500',
-            image: 'https://picsum.photos/seed/candle/600/800',
-            category: 'candles',
-            description: 'Hand-poured soy candle with calming scents.'
-          }
-        ]);
+    const fetchProducts = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch('/api/products');
+        const data = await response.json();
+        setProducts(data);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      } finally {
+        setLoading(false);
       }
-    });
-    return () => unsub();
+    };
+    fetchProducts();
   }, []);
 
   return (
@@ -69,11 +39,15 @@ const Home = () => {
             <h2 className="text-4xl md:text-5xl font-serif">Your <span className="italic text-royal-blue">Everyday Care</span></h2>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
-            {products.slice(0, 4).map((product, i) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          {loading ? (
+            <div className="text-center py-20 text-ink/40 uppercase tracking-widest text-xs">Loading Featured...</div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+              {products.slice(0, 4).map((product, i) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          )}
 
           <div className="mt-20 text-center">
             <button className="border border-ink/20 px-12 py-5 text-sm uppercase tracking-widest font-bold hover:bg-ink hover:text-white transition-all">

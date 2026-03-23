@@ -1,35 +1,42 @@
 import React, { useState } from 'react';
-import { auth, googleProvider, signInWithPopup, signInWithEmailAndPassword } from '../firebase';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { LogIn, Mail, Lock, ShieldCheck } from 'lucide-react';
+import { LogIn, User, Lock, ShieldCheck } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
+  const { login } = useAuth();
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [isEmailLogin, setIsEmailLogin] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleGoogleLogin = async () => {
-    try {
-      await signInWithPopup(auth, googleProvider);
-      navigate('/');
-    } catch (error) {
-      console.error('Login failed:', error);
-      setError('Google login failed. Please try again.');
-    }
-  };
-
-  const handleEmailLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
+    
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      navigate('/');
-    } catch (error: any) {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        login(data.user);
+        navigate('/admin');
+      } else {
+        setError(data.message || 'Invalid credentials.');
+      }
+    } catch (error) {
       console.error('Login failed:', error);
-      setError(error.message || 'Invalid credentials.');
+      setError('Connection error. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -53,93 +60,50 @@ const Login = () => {
           </div>
         )}
 
-        {!isEmailLogin ? (
-          <div className="space-y-4">
-            <button 
-              onClick={handleGoogleLogin}
-              className="w-full bg-royal-blue text-white py-4 rounded-xl font-bold flex items-center justify-center gap-3 hover:bg-ink transition-all shadow-lg"
-            >
-              <LogIn size={20} />
-              Sign in with Google
-            </button>
-            
-            <div className="relative py-4">
-              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-black/5"></div></div>
-              <div className="relative flex justify-center text-xs uppercase tracking-widest"><span className="bg-white px-4 text-ink/30">Or</span></div>
+        <form onSubmit={handleLogin} className="space-y-4 text-left">
+          <div>
+            <label className="text-[10px] uppercase tracking-widest text-ink/40 mb-1 block">Username</label>
+            <div className="relative">
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 text-ink/30" size={18} />
+              <input 
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Enter username"
+                className="w-full bg-cream/50 border border-black/5 rounded-xl py-3 pl-12 pr-4 outline-none focus:border-royal-blue transition-colors"
+                required
+              />
             </div>
-
-            <button 
-              onClick={() => setIsEmailLogin(true)}
-              className="w-full border border-black/10 text-ink py-4 rounded-xl font-bold flex items-center justify-center gap-3 hover:bg-black/5 transition-all"
-            >
-              <Mail size={20} />
-              Sign in with Email
-            </button>
           </div>
-        ) : (
-          <form onSubmit={handleEmailLogin} className="space-y-4 text-left">
-            <div>
-              <label className="text-[10px] uppercase tracking-widest text-ink/40 mb-1 block">Email Address</label>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-ink/30" size={18} />
-                <input 
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@xidonurtia.com"
-                  className="w-full bg-cream/50 border border-black/5 rounded-xl py-3 pl-12 pr-4 outline-none focus:border-royal-blue transition-colors"
-                  required
-                />
-              </div>
+          
+          <div>
+            <label className="text-[10px] uppercase tracking-widest text-ink/40 mb-1 block">Password</label>
+            <div className="relative">
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-ink/30" size={18} />
+              <input 
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full bg-cream/50 border border-black/5 rounded-xl py-3 pl-12 pr-4 outline-none focus:border-royal-blue transition-colors"
+                required
+              />
             </div>
-            
-            <div>
-              <label className="text-[10px] uppercase tracking-widest text-ink/40 mb-1 block">Password</label>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-ink/30" size={18} />
-                <input 
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full bg-cream/50 border border-black/5 rounded-xl py-3 pl-12 pr-4 outline-none focus:border-royal-blue transition-colors"
-                  required
-                />
-              </div>
-            </div>
+          </div>
 
-            <button 
-              type="submit"
-              className="w-full bg-royal-blue text-white py-4 rounded-xl font-bold flex items-center justify-center gap-3 hover:bg-ink transition-all shadow-lg mt-6"
-            >
-              Login to Dashboard
-            </button>
-
-            <div className="relative py-4">
-              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-black/5"></div></div>
-              <div className="relative flex justify-center text-xs uppercase tracking-widest"><span className="bg-white px-4 text-ink/30">Quick Access</span></div>
-            </div>
-
-            <button 
-              type="button"
-              onClick={() => {
-                setEmail('admin@xidonurtia.com');
-                setPassword('admin123');
-              }}
-              className="w-full bg-ink text-white py-3 rounded-xl text-xs uppercase tracking-widest font-bold hover:bg-royal-blue transition-all"
-            >
-              Autofill Demo Admin
-            </button>
-
-            <button 
-              type="button"
-              onClick={() => setIsEmailLogin(false)}
-              className="w-full text-xs uppercase tracking-widest text-ink/40 hover:text-royal-blue transition-colors mt-4"
-            >
-              Back to Google Login
-            </button>
-          </form>
-        )}
+          <button 
+            type="submit"
+            disabled={loading}
+            className="w-full bg-royal-blue text-white py-4 rounded-xl font-bold flex items-center justify-center gap-3 hover:bg-ink transition-all shadow-lg mt-6 disabled:opacity-50"
+          >
+            {loading ? 'Authenticating...' : (
+              <>
+                <LogIn size={20} />
+                Login to Dashboard
+              </>
+            )}
+          </button>
+        </form>
       </motion.div>
     </main>
   );

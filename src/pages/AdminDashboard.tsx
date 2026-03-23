@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { db, auth, signOut } from '../firebase';
-import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
+import { db } from '../firebase';
+import { collection, onSnapshot, query, orderBy, updateDoc, doc } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Package, 
@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 
 const AdminDashboard = () => {
-  const { user, role, loading } = useAuth();
+  const { user, role, loading, logout } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'products' | 'content' | 'orders'>('products');
   
@@ -36,11 +36,20 @@ const AdminDashboard = () => {
     }
   }, [user, role, loading, navigate]);
 
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch('/api/products');
+      const data = await response.json();
+      setProducts(data);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
+
   useEffect(() => {
     if (role === 'admin') {
-      const unsubProducts = onSnapshot(collection(db, 'products'), (snapshot) => {
-        setProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-      });
+      fetchProducts();
+      
       const unsubOrders = onSnapshot(query(collection(db, 'orders'), orderBy('createdAt', 'desc')), (snapshot) => {
         setOrders(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       });
@@ -49,38 +58,45 @@ const AdminDashboard = () => {
       });
 
       return () => {
-        unsubProducts();
         unsubOrders();
         unsubContent();
       };
     }
   }, [role]);
 
-  const handleLogout = async () => {
-    await signOut(auth);
+  const handleLogout = () => {
+    logout();
     navigate('/');
   };
 
-  const handleAddProduct = async () => {
-    const newProduct = {
-      name: 'New Product',
-      price: 0,
-      image: 'https://picsum.photos/seed/new/600/800',
-      category: 'pads',
-      description: 'New product description',
-      stock: 10
-    };
-    await addDoc(collection(db, 'products'), newProduct);
-  };
-
   const handleUpdateProduct = async (id: string) => {
-    await updateDoc(doc(db, 'products', id), editForm);
-    setIsEditing(null);
+    try {
+      const response = await fetch(`/api/products/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editForm)
+      });
+      if (response.ok) {
+        setIsEditing(null);
+        fetchProducts();
+      }
+    } catch (error) {
+      console.error("Error updating product:", error);
+    }
   };
 
   const handleDeleteProduct = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
-      await deleteDoc(doc(db, 'products', id));
+      try {
+        const response = await fetch(`/api/products/${id}`, {
+          method: 'DELETE'
+        });
+        if (response.ok) {
+          fetchProducts();
+        }
+      } catch (error) {
+        console.error("Error deleting product:", error);
+      }
     }
   };
 
@@ -145,61 +161,100 @@ const AdminDashboard = () => {
             >
               <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-serif italic">Inventory</h2>
-                <button 
-                  onClick={handleAddProduct}
+                <Link 
+                  to="/admin/add-product"
                   className="bg-royal-blue text-white px-6 py-3 rounded-xl text-xs uppercase tracking-widest font-bold flex items-center gap-2 hover:bg-ink transition-all"
                 >
                   <Plus size={16} /> Add Product
-                </button>
+                </Link>
               </div>
 
               <div className="grid grid-cols-1 gap-4">
                 {products.map(product => (
-                  <div key={product.id} className="bg-white p-6 rounded-2xl luxury-shadow flex items-center gap-6">
+                  <div key={product.id} className="bg-white p-6 rounded-2xl luxury-shadow flex flex-col md:flex-row items-center gap-6">
                     <img src={product.image} className="w-20 h-20 object-cover rounded-lg" alt="" />
-                    <div className="flex-grow">
+                    <div className="flex-grow w-full">
                       {isEditing === product.id ? (
-                        <div className="grid grid-cols-2 gap-4">
-                          <input 
-                            className="border p-2 rounded" 
-                            value={editForm.name} 
-                            onChange={e => setEditForm({...editForm, name: e.target.value})}
-                          />
-                          <input 
-                            className="border p-2 rounded" 
-                            type="number"
-                            value={editForm.price} 
-                            onChange={e => setEditForm({...editForm, price: Number(e.target.value)})}
-                          />
-                          <input 
-                            className="border p-2 rounded" 
-                            value={editForm.category} 
-                            onChange={e => setEditForm({...editForm, category: e.target.value})}
-                          />
-                          <input 
-                            className="border p-2 rounded" 
-                            type="number"
-                            value={editForm.stock} 
-                            onChange={e => setEditForm({...editForm, stock: Number(e.target.value)})}
-                          />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-[10px] uppercase font-bold text-ink/40 mb-1 block">Name</label>
+                            <input 
+                              className="w-full border p-2 rounded-lg" 
+                              value={editForm.name} 
+                              onChange={e => setEditForm({...editForm, name: e.target.value})}
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] uppercase font-bold text-ink/40 mb-1 block">Price (Ksh)</label>
+                            <input 
+                              className="w-full border p-2 rounded-lg" 
+                              type="number"
+                              value={editForm.price} 
+                              onChange={e => setEditForm({...editForm, price: Number(e.target.value)})}
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] uppercase font-bold text-ink/40 mb-1 block">Category</label>
+                            <select 
+                              className="w-full border p-2 rounded-lg" 
+                              value={editForm.category} 
+                              onChange={e => setEditForm({...editForm, category: e.target.value})}
+                            >
+                              <option value="pads">Pads</option>
+                              <option value="tissues">Tissues</option>
+                              <option value="furniture">Furniture</option>
+                              <option value="rugs">Rugs</option>
+                              <option value="candles">Candles</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="text-[10px] uppercase font-bold text-ink/40 mb-1 block">Stock</label>
+                            <input 
+                              className="w-full border p-2 rounded-lg" 
+                              type="number"
+                              value={editForm.stock} 
+                              onChange={e => setEditForm({...editForm, stock: Number(e.target.value)})}
+                            />
+                          </div>
+                          <div className="md:col-span-2">
+                            <label className="text-[10px] uppercase font-bold text-ink/40 mb-1 block">Description (Max 40 words)</label>
+                            <textarea 
+                              className="w-full border p-2 rounded-lg resize-none" 
+                              rows={3}
+                              value={editForm.description} 
+                              onChange={e => {
+                                const words = e.target.value.trim().split(/\s+/);
+                                if (words.length <= 40) {
+                                  setEditForm({...editForm, description: e.target.value});
+                                }
+                              }}
+                            />
+                          </div>
                         </div>
                       ) : (
                         <>
-                          <h3 className="font-bold">{product.name}</h3>
-                          <p className="text-sm text-ink/60">Ksh. {product.price} • {product.category} • Stock: {product.stock}</p>
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="font-bold text-lg">{product.name}</h3>
+                              <p className="text-xs uppercase tracking-widest text-royal-blue font-bold mb-2">{product.category}</p>
+                            </div>
+                            <p className="font-bold text-royal-blue">Ksh. {product.price.toLocaleString()}</p>
+                          </div>
+                          <p className="text-sm text-ink/60 line-clamp-2 mb-2">{product.description}</p>
+                          <p className="text-[10px] uppercase tracking-widest font-bold text-ink/30">Stock: {product.stock}</p>
                         </>
                       )}
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 shrink-0">
                       {isEditing === product.id ? (
                         <>
-                          <button onClick={() => handleUpdateProduct(product.id)} className="p-2 text-green-600 hover:bg-green-50 rounded-lg"><Save size={20} /></button>
-                          <button onClick={() => setIsEditing(null)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><X size={20} /></button>
+                          <button onClick={() => handleUpdateProduct(product.id)} className="p-3 bg-green-50 text-green-600 hover:bg-green-100 rounded-xl transition-colors"><Save size={20} /></button>
+                          <button onClick={() => setIsEditing(null)} className="p-3 bg-red-50 text-red-600 hover:bg-red-100 rounded-xl transition-colors"><X size={20} /></button>
                         </>
                       ) : (
                         <>
-                          <button onClick={() => { setIsEditing(product.id); setEditForm(product); }} className="p-2 text-royal-blue hover:bg-royal-blue/5 rounded-lg"><Edit2 size={20} /></button>
-                          <button onClick={() => handleDeleteProduct(product.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><Trash2 size={20} /></button>
+                          <button onClick={() => { setIsEditing(product.id); setEditForm(product); }} className="p-3 bg-royal-blue/5 text-royal-blue hover:bg-royal-blue/10 rounded-xl transition-colors"><Edit2 size={20} /></button>
+                          <button onClick={() => handleDeleteProduct(product.id)} className="p-3 bg-red-50 text-red-600 hover:bg-red-100 rounded-xl transition-colors"><Trash2 size={20} /></button>
                         </>
                       )}
                     </div>

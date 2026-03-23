@@ -1,55 +1,54 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { auth, db } from '../firebase';
-import { onAuthStateChanged, User } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+
+interface User {
+  username: string;
+  role: 'admin';
+}
 
 interface AuthContextType {
   user: User | null;
-  role: 'admin' | 'customer' | null;
+  role: 'admin' | null;
   loading: boolean;
-  logout: () => Promise<void>;
+  login: (userData: User) => void;
+  logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [role, setRole] = useState<'admin' | 'customer' | null>(null);
+  const [role, setRole] = useState<'admin' | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const logout = async () => {
-    await auth.signOut();
+  const login = (userData: User) => {
+    setUser(userData);
+    setRole(userData.role);
+    localStorage.setItem('admin_session', JSON.stringify(userData));
+  };
+
+  const logout = () => {
+    setUser(null);
+    setRole(null);
+    localStorage.removeItem('admin_session');
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      if (currentUser) {
-        // Check role in Firestore
-        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-        if (userDoc.exists()) {
-          setRole(userDoc.data().role);
-        } else {
-          // Define the two admin emails
-          const adminEmails = ['maxwellsabwa@gmail.com', 'admin2@gmail.com'];
-          const defaultRole = adminEmails.includes(currentUser.email || '') ? 'admin' : 'customer';
-          await setDoc(doc(db, 'users', currentUser.uid), {
-            email: currentUser.email,
-            role: defaultRole
-          });
-          setRole(defaultRole);
-        }
-      } else {
-        setRole(null);
+    const savedSession = localStorage.getItem('admin_session');
+    if (savedSession) {
+      try {
+        const userData = JSON.parse(savedSession);
+        setUser(userData);
+        setRole(userData.role);
+      } catch (error) {
+        console.error("Failed to parse saved session:", error);
+        localStorage.removeItem('admin_session');
       }
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
+    }
+    setLoading(false);
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, role, loading, logout }}>
+    <AuthContext.Provider value={{ user, role, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
