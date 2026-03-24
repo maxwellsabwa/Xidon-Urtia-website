@@ -6,25 +6,22 @@ interface LogoProps {
 }
 
 const Logo: React.FC<LogoProps> = ({ className = '', variant = 'brand' }) => {
-  const logoUrl = "/logo.svg";
+  // The user will upload the new logo to /logo.png
+  const logoUrl = "/logo.png";
   
   return (
     <div className={`flex items-center gap-3 ${className}`}>
-      <div className={`relative w-12 h-12 rounded-full flex items-center justify-center shadow-lg overflow-hidden border border-logo-gold/20 bg-white`}>
+      <div className={`relative w-14 h-14 rounded-full flex items-center justify-center shadow-xl overflow-hidden border-2 border-royal-blue/20 bg-royal-blue`}>
         <img 
           src={logoUrl} 
           alt="Xidon Urtia Logo" 
-          className="w-full h-full object-contain p-1"
+          className="w-full h-full object-cover"
           referrerPolicy="no-referrer"
+          onError={(e) => {
+            // Fallback to SVG if PNG is not yet uploaded
+            (e.target as HTMLImageElement).src = "/logo.svg";
+          }}
         />
-      </div>
-      <div className="flex flex-col">
-        <span className={`font-serif text-xl tracking-[0.15em] uppercase leading-none font-bold ${variant === 'light' ? 'text-white' : 'text-ink'}`}>
-          Xidon Urtia
-        </span>
-        <span className={`text-[8px] uppercase tracking-[0.2em] mt-1 font-medium ${variant === 'light' ? 'text-white/60' : 'text-royal-blue/80'}`}>
-          Handmade Products • Est 2020
-        </span>
       </div>
     </div>
   );
